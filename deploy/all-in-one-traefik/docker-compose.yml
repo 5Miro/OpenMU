@@ -24,12 +24,12 @@ services:
       - "traefik.enable=true"
       - "traefik.docker.network=proxy"
       - "traefik.http.routers.openmu.entrypoints=web"
-      - "traefik.http.routers.openmu.rule=Host(`admin.docker.localhost`)"
+      - "traefik.http.routers.openmu.rule=PathPrefix(`/`)"
       - "traefik.http.routers.openmu.middlewares=auth"
       - "traefik.http.middlewares.auth.basicauth.usersfile=.htpasswd"
 
   database:
-    image: postgres
+    image: postgres:17
     container_name: database
     environment:
       POSTGRES_PASSWORD: admin
