@@ -2,6 +2,7 @@ services:
     openmu-startup:
         image: munique/openmu:local
         container_name: openmu-startup
+        restart: unless-stopped
         networks:
             - proxy
         ports:
@@ -31,6 +32,7 @@ services:
     database:
         image: postgres:17
         container_name: database
+        restart: unless-stopped
         environment:
             POSTGRES_PASSWORD: admin
             POSTGRES_DB: openmu
@@ -45,7 +47,7 @@ services:
     traefik:
         image: "traefik"
         container_name: "traefik"
-        restart: always
+        restart: unless-stopped
         command:
             - "--log.level=DEBUG"
             - "--api.insecure=true"
