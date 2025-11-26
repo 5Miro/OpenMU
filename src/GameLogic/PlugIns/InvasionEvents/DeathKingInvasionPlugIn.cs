@@ -21,10 +21,10 @@ public class DeathKingInvasionPlugIn : BaseInvasionPlugIn<PeriodicInvasionConfig
     /// Initializes a new instance of the <see cref="DeathKingInvasionPlugIn"/> class.
     /// </summary>
     public DeathKingInvasionPlugIn()
-        : base(null, null, new (ushort MonsterId, ushort Count)[]
+        : base(null, null, new InvasionMobSpawn[]
             {
-                (DeathKingId, 2),
-                (DeathBoneId, 20),
+                new(DeathKingId, 2),
+                new(DeathBoneId, 20),
             })
     {
     }
