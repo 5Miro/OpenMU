@@ -41,4 +41,15 @@ public class PeriodicInvasionConfiguration : PeriodicTaskConfiguration
         Message = "[{mapName}] Red Dragon Invasion!",
         Timetable = GenerateTimeSequence(TimeSpan.FromHours(6), new TimeOnly(2, 0)).ToList(), // Every 6 hours, starting from 02:00
     };
+
+    /// <summary>
+    /// Gets the default configuration for the death king invasion.
+    /// </summary>
+    public static PeriodicInvasionConfiguration DefaultDeathKingInvasion => new()
+    {
+        TaskDuration = TimeSpan.FromMinutes(30),
+        PreStartMessageDelay = TimeSpan.FromSeconds(3),
+        Message = "[{mapName}] Death King Invasion!",
+        Timetable = GenerateTimeSequence(TimeSpan.FromHours(3), new TimeOnly(0, 30)).ToList(), // Every 3 hours
+    };
 }
