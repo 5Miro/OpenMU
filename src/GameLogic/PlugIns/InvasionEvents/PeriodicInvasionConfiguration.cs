@@ -63,4 +63,26 @@ public class PeriodicInvasionConfiguration : PeriodicTaskConfiguration
         Message = "[{mapName}] Death King Invasion!",
         Timetable = GenerateTimeSequence(TimeSpan.FromHours(3), new TimeOnly(0, 30)).ToList(), // Every 3 hours
     };
+
+    /// <summary>
+    /// Gets the default configuration for the lunar rabbit invasion.
+    /// </summary>
+    public static PeriodicInvasionConfiguration DefaultLunarRabbitInvasion => new()
+    {
+        TaskDuration = TimeSpan.FromMinutes(30),
+        PreStartMessageDelay = TimeSpan.FromSeconds(3),
+        Message = "[{mapName}] Lunar Rabbit Invasion!",
+        Timetable = GenerateTimeSequence(TimeSpan.FromHours(4), new TimeOnly(2, 30)).ToList(), // Every 4 hours, starting from 02:30
+    };
+
+    /// <summary>
+    /// Gets the default configuration for the fire flame ghost invasion.
+    /// </summary>
+    public static PeriodicInvasionConfiguration DefaultFireFlameGhostInvasion => new()
+    {
+        TaskDuration = TimeSpan.FromMinutes(30),
+        PreStartMessageDelay = TimeSpan.FromSeconds(3),
+        Message = "[{mapName}] Fire Flame Ghost Invasion!",
+        Timetable = GenerateTimeSequence(TimeSpan.FromHours(4), new TimeOnly(3, 0)).ToList(), // Every 4 hours, starting from 03:00
+    };
 }
