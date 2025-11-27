@@ -41,4 +41,15 @@ public class PeriodicInvasionConfiguration : PeriodicTaskConfiguration
         Message = "[{mapName}] Red Dragon Invasion!",
         Timetable = GenerateTimeSequence(TimeSpan.FromHours(6), new TimeOnly(2, 0)).ToList(), // Every 6 hours, starting from 02:00
     };
+
+    /// <summary>
+    /// Gets the default configuration for the white wizard invasion.
+    /// </summary>
+    public static PeriodicInvasionConfiguration DefaultWhiteWizardInvasion => new()
+    {
+        TaskDuration = TimeSpan.FromMinutes(30),
+        PreStartMessageDelay = TimeSpan.FromSeconds(3),
+        Message = "[{mapName}] White Wizard Invasion!",
+        Timetable = GenerateTimeSequence(TimeSpan.FromHours(4), new TimeOnly(1, 15)).ToList(), // Every 4 hours, starting from 01:15
+    };
 }
