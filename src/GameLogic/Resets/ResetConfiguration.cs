@@ -4,7 +4,9 @@
 
 namespace MUnique.OpenMU.GameLogic.Resets;
 
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using MUnique.OpenMU.DataModel.Composition;
 
 /// <summary>
 /// Configuration of the Reset System.
@@ -20,7 +22,10 @@ public class ResetConfiguration
     /// <summary>
     /// Gets or sets the experience rate table entries, which define experience rates for specific reset count ranges.
     /// </summary>
-    public IList<ResetExperienceRateEntry> ExperienceRateTable { get; set; } = new List<ResetExperienceRateEntry>();
+    [MemberOfAggregate]
+    [ScaffoldColumn(true)]
+    [Display(Name = "Experience Rate Table", Description = "Table of experience rates based on reset count ranges")]
+    public ICollection<ResetExperienceRateEntry> ExperienceRateTable { get; set; } = new List<ResetExperienceRateEntry>();
     /// <summary>
     /// Gets or sets the reset limit, which is the maximum amount of possible resets.
     /// </summary>
