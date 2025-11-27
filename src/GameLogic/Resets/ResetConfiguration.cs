@@ -4,11 +4,23 @@
 
 namespace MUnique.OpenMU.GameLogic.Resets;
 
+using System.Linq;
+
 /// <summary>
 /// Configuration of the Reset System.
 /// </summary>
 public class ResetConfiguration
 {
+    /// <summary>
+    /// Gets or sets a value indicating whether dynamic experience rate based on reset count is enabled.
+    /// When enabled, the experience rate will be determined by the player's reset count using the <see cref="ExperienceRateTable"/>.
+    /// </summary>
+    public bool EnableDynamicExperienceRate { get; set; }
+
+    /// <summary>
+    /// Gets or sets the experience rate table entries, which define experience rates for specific reset count ranges.
+    /// </summary>
+    public IList<ResetExperienceRateEntry> ExperienceRateTable { get; set; } = new List<ResetExperienceRateEntry>();
     /// <summary>
     /// Gets or sets the reset limit, which is the maximum amount of possible resets.
     /// </summary>
@@ -64,4 +76,24 @@ public class ResetConfiguration
     /// Gets or sets a value indicating whether a reset logs the player out back to character selection.
     /// </summary>
     public bool LogOut { get; set; } = true;
+
+    /// <summary>
+    /// Gets the experience rate for the given reset count.
+    /// If dynamic experience rate is enabled and a matching entry is found, returns that rate.
+    /// Otherwise, returns null to indicate the global experience rate should be used.
+    /// </summary>
+    /// <param name="resetCount">The reset count of the player.</param>
+    /// <returns>The experience rate for the reset count, or null if the global rate should be used.</returns>
+    public float? GetExperienceRateForResetCount(int resetCount)
+    {
+        if (!this.EnableDynamicExperienceRate || this.ExperienceRateTable == null || this.ExperienceRateTable.Count == 0)
+        {
+            return null;
+        }
+
+        var entry = this.ExperienceRateTable.FirstOrDefault(
+            e => resetCount >= e.MinimumResetCount && resetCount <= e.MaximumResetCount);
+
+        return entry?.ExperienceRate;
+    }
 }

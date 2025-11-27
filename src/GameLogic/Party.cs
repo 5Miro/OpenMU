@@ -7,6 +7,7 @@ namespace MUnique.OpenMU.GameLogic;
 using System.Diagnostics.Metrics;
 using System.Threading;
 using MUnique.OpenMU.GameLogic.Attributes;
+using MUnique.OpenMU.GameLogic.Resets;
 using MUnique.OpenMU.GameLogic.Views;
 using MUnique.OpenMU.GameLogic.Views.Party;
 using Nito.AsyncEx;
@@ -269,28 +270,102 @@ public sealed class Party : Disposable
         var averageExperience = killedObject.CalculateBaseExperience(averageLevel);
         var totalAverageExperience = averageExperience * count * Math.Pow(1.05, count - 1);
         totalAverageExperience *= killedObject.CurrentMap?.Definition.ExpMultiplier ?? 1;
-        totalAverageExperience *= this._distributionList.First().GameContext.ExperienceRate;
+        
+        // Use minimum dynamic experience rate from party to prevent exploitation
+        var firstPlayer = this._distributionList.First();
+        var partyExperienceRate = this.GetPartyExperienceRate(firstPlayer.GameContext);
+        totalAverageExperience *= partyExperienceRate;
 
         var randomizedTotalExperience = Rand.NextInt((int)(totalAverageExperience * 0.8), (int)(totalAverageExperience * 1.2));
         var randomizedTotalExperiencePerLevel = randomizedTotalExperience / totalLevel;
         foreach (var player in this._distributionList)
         {
+            // Get this player's individual dynamic experience rate
+            var playerExperienceRate = this.GetPlayerExperienceRate(player);
+            
             if ((short)player.Attributes![Stats.Level] == player.GameContext.Configuration.MaximumLevel)
             {
                 if (player.SelectedCharacter?.CharacterClass?.IsMasterClass ?? false)
                 {
-                    var expMaster = (int)(randomizedTotalExperiencePerLevel * player.Attributes![Stats.TotalLevel] * (player.Attributes[Stats.MasterExperienceRate] + player.Attributes[Stats.BonusExperienceRate]));
+                    var expMaster = (int)(randomizedTotalExperiencePerLevel * player.Attributes![Stats.TotalLevel] * playerExperienceRate * (player.Attributes[Stats.MasterExperienceRate] + player.Attributes[Stats.BonusExperienceRate]));
                     await player.AddMasterExperienceAsync(expMaster, killedObject).ConfigureAwait(false);
                 }
             }
             else
             {
-                var exp = (int)(randomizedTotalExperiencePerLevel * player.Attributes![Stats.Level] * (player.Attributes[Stats.ExperienceRate] + player.Attributes[Stats.BonusExperienceRate]));
+                var exp = (int)(randomizedTotalExperiencePerLevel * player.Attributes![Stats.Level] * playerExperienceRate * (player.Attributes[Stats.ExperienceRate] + player.Attributes[Stats.BonusExperienceRate]));
                 await player.AddExperienceAsync(exp, killedObject).ConfigureAwait(false);
             }
         }
 
         return randomizedTotalExperience;
+    }
+
+    /// <summary>
+    /// Gets the experience rate for party experience distribution, using the minimum dynamic experience rate from all party members.
+    /// This prevents low-reset players from exploiting high-level areas by partying with high-reset players.
+    /// </summary>
+    /// <param name="gameContext">The game context.</param>
+    /// <returns>The minimum experience rate from all party members, or global rate if dynamic rates are disabled.</returns>
+    private float GetPartyExperienceRate(IGameContext gameContext)
+    {
+        var resetFeature = gameContext.FeaturePlugIns.GetPlugIn<ResetFeaturePlugIn>();
+        if (resetFeature?.Configuration is not { EnableDynamicExperienceRate: true } resetConfig)
+        {
+            return gameContext.ExperienceRate;
+        }
+
+        if (this._distributionList.Count == 0)
+        {
+            return gameContext.ExperienceRate;
+        }
+
+        // Find the minimum dynamic experience rate from all party members
+        float? minDynamicRate = null;
+        
+        foreach (var player in this._distributionList)
+        {
+            var resetCount = (int)(player.Attributes?[Stats.Resets] ?? 0);
+            var dynamicRate = resetConfig.GetExperienceRateForResetCount(resetCount);
+            
+            if (dynamicRate.HasValue)
+            {
+                if (!minDynamicRate.HasValue || dynamicRate.Value < minDynamicRate.Value)
+                {
+                    minDynamicRate = dynamicRate.Value;
+                }
+            }
+        }
+
+        // If we found a minimum dynamic rate, use it; otherwise use global rate
+        return minDynamicRate ?? gameContext.ExperienceRate;
+    }
+
+    /// <summary>
+    /// Gets the experience rate multiplier for a specific player, considering dynamic experience rates based on reset count.
+    /// Returns the ratio of the player's dynamic rate to the global rate, so it can be applied on top of the base pool.
+    /// </summary>
+    /// <param name="player">The player.</param>
+    /// <returns>The experience rate multiplier for this player (1.0 if no dynamic rate, or ratio of dynamic rate to global rate).</returns>
+    private float GetPlayerExperienceRate(Player player)
+    {
+        var resetFeature = player.GameContext.FeaturePlugIns.GetPlugIn<ResetFeaturePlugIn>();
+        if (resetFeature?.Configuration is not { } resetConfig)
+        {
+            return 1.0f; // Return 1.0 since we already applied global rate to the pool
+        }
+
+        var resetCount = (int)(player.Attributes?[Stats.Resets] ?? 0);
+        var dynamicRate = resetConfig.GetExperienceRateForResetCount(resetCount);
+        
+        // If player has a dynamic rate, return the ratio of their rate to global rate
+        // This way we apply their individual rate on top of the base pool (which uses minimum rate)
+        if (dynamicRate.HasValue)
+        {
+            return dynamicRate.Value / player.GameContext.ExperienceRate;
+        }
+
+        return 1.0f; // No dynamic rate, use base rate (already applied)
     }
 
     private async ValueTask ExitPartyAsync(IPartyMember player, byte index)
