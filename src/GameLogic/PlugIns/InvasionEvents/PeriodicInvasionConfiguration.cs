@@ -43,6 +43,17 @@ public class PeriodicInvasionConfiguration : PeriodicTaskConfiguration
     };
 
     /// <summary>
+    /// Gets the default configuration for the white wizard invasion.
+    /// </summary>
+    public static PeriodicInvasionConfiguration DefaultWhiteWizardInvasion => new()
+    {
+        TaskDuration = TimeSpan.FromMinutes(30),
+        PreStartMessageDelay = TimeSpan.FromSeconds(3),
+        Message = "[{mapName}] White Wizard Invasion!",
+        Timetable = GenerateTimeSequence(TimeSpan.FromHours(4), new TimeOnly(1, 15)).ToList(), // Every 4 hours, starting from 01:15
+    };
+
+    /// <summary>
     /// Gets the default configuration for the death king invasion.
     /// </summary>
     public static PeriodicInvasionConfiguration DefaultDeathKingInvasion => new()
