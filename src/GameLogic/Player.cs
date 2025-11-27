@@ -18,6 +18,7 @@ using MUnique.OpenMU.GameLogic.PlayerActions.Items;
 using MUnique.OpenMU.GameLogic.PlayerActions.Skills;
 using MUnique.OpenMU.GameLogic.PlayerActions.Trade;
 using MUnique.OpenMU.GameLogic.PlugIns;
+using MUnique.OpenMU.GameLogic.Resets;
 using MUnique.OpenMU.GameLogic.Views;
 using MUnique.OpenMU.GameLogic.Views.Character;
 using MUnique.OpenMU.GameLogic.Views.Inventory;
@@ -1080,7 +1081,10 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
         var expRateAttribute = addMasterExperience ? Stats.MasterExperienceRate : Stats.ExperienceRate;
 
         var experience = killedObject.CalculateBaseExperience(this.Attributes![Stats.TotalLevel]);
-        experience *= this.GameContext.ExperienceRate;
+        
+        // Check for dynamic experience rate based on reset count
+        var experienceRate = this.GetExperienceRate();
+        experience *= experienceRate;
         experience *= this.Attributes[expRateAttribute] + this.Attributes[Stats.BonusExperienceRate];
         experience *= this.CurrentMap?.Definition.ExpMultiplier ?? 1;
         experience = Rand.NextInt((int)(experience * 0.8), (int)(experience * 1.2));
@@ -1097,6 +1101,24 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
         await this.AddPetExperienceAsync(experience).ConfigureAwait(false);
 
         return (int)experience;
+    }
+
+    /// <summary>
+    /// Gets the experience rate for this player, considering dynamic experience rate based on reset count.
+    /// </summary>
+    /// <returns>The experience rate to use for this player.</returns>
+    private float GetExperienceRate()
+    {
+        var resetFeature = this.GameContext.FeaturePlugIns.GetPlugIn<ResetFeaturePlugIn>();
+        if (resetFeature?.Configuration is not { } resetConfig)
+        {
+            return this.GameContext.ExperienceRate;
+        }
+
+        var resetCount = (int)(this.Attributes?[Stats.Resets] ?? 0);
+        var dynamicRate = resetConfig.GetExperienceRateForResetCount(resetCount);
+        
+        return dynamicRate ?? this.GameContext.ExperienceRate;
     }
 
     /// <summary>
