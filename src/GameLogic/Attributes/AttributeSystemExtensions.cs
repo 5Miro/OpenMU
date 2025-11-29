@@ -73,6 +73,13 @@ public static class AttributeSystemExtensions
             var composableResult = new ComposableAttribute(targetDefinition, result.AggregateType);
 
             elements.ForEach(element => composableResult.AddElement(element));
+            
+            // Apply MaxValue clamping if specified
+            if (value.MaxValue.HasValue)
+            {
+                return new ClampedElement(composableResult, 0f, value.MaxValue.Value);
+            }
+            
             return composableResult;
         }
 
@@ -81,6 +88,40 @@ public static class AttributeSystemExtensions
             throw new ArgumentException($"The passed {nameof(PowerUpDefinitionValue)} doesn't have a constant value or related values.", nameof(value));
         }
 
+        // Apply MaxValue clamping to constant value if specified
+        if (value.MaxValue.HasValue)
+        {
+            return new ClampedElement(result, 0f, value.MaxValue.Value);
+        }
+
         return result;
+    }
+}
+
+/// <summary>
+/// An element that clamps a value to a minimum and maximum range.
+/// </summary>
+public class ClampedElement : IElement
+{
+    private readonly IElement _source;
+    private readonly float _min;
+    private readonly float _max;
+
+    public ClampedElement(IElement source, float min, float max)
+    {
+        _source = source;
+        _min = min;
+        _max = max;
+        _source.ValueChanged += (s, e) => this.RaiseValueChanged();
+    }
+
+    public float Value => Math.Clamp(_source.Value, _min, _max);
+    public AggregateType AggregateType => _source.AggregateType;
+    
+    public event EventHandler? ValueChanged;
+    
+    private void RaiseValueChanged()
+    {
+        ValueChanged?.Invoke(this, EventArgs.Empty);
     }
 }
