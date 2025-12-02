@@ -1809,7 +1809,7 @@ public class PacketStructureTests
     public void CurrentStatsExtended_PacketSizeValidation()
     {
         // Fixed-length packet validation
-        const int expectedLength = 24;
+        const int expectedLength = 26;
         var actualLength = CurrentStatsExtendedRef.Length;
         
         Assert.That(actualLength, Is.EqualTo(expectedLength), 
@@ -1838,6 +1838,10 @@ public class PacketStructureTests
         // Validate field 'MagicSpeed' boundary
         Assert.That(22 + 2, Is.LessThanOrEqualTo(expectedLength), 
             "Field 'MagicSpeed' exceeds packet boundary");
+        
+        // Validate field 'SkillMultiplier' boundary
+        Assert.That(24 + 2, Is.LessThanOrEqualTo(expectedLength), 
+            "Field 'SkillMultiplier' exceeds packet boundary");
     }
 
     /// <summary>

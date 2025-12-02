@@ -34,6 +34,7 @@ public class UpdateStatsExtendedPlugIn : UpdateStatsBasePlugIn
         { Stats.CurrentAbility, OnCurrentStatsChangedAsync },
         { Stats.AttackSpeed, OnCurrentStatsChangedAsync },
         { Stats.MagicSpeed, OnCurrentStatsChangedAsync },
+        { Stats.SkillMultiplier, OnSkillMultiplierChangedAsync },
     }.ToFrozenDictionary();
 
     /// <summary>
@@ -62,6 +63,22 @@ public class UpdateStatsExtendedPlugIn : UpdateStatsBasePlugIn
             (uint)player.Attributes[Stats.CurrentMana],
             (uint)player.Attributes[Stats.CurrentAbility],
             (ushort)player.Attributes[Stats.AttackSpeed],
-            (ushort)player.Attributes[Stats.MagicSpeed]).ConfigureAwait(false);
+            (ushort)player.Attributes[Stats.MagicSpeed],
+            (ushort)Math.Min(ushort.MaxValue, player.Attributes[Stats.SkillMultiplier] * 100)).ConfigureAwait(false);
+    }
+
+    private static async ValueTask OnSkillMultiplierChangedAsync(RemotePlayer player)
+    {
+        // Send SkillMultiplier as percentage (e.g., 5.0 = 500, 4.15 = 415)
+        // The server correctly caps SkillMultiplier at the MaximumValue (e.g., 5.0 = 500%),
+        // and now the client will receive this capped value.
+        await player.Connection.SendCurrentStatsExtendedAsync(
+            (uint)player.Attributes![Stats.CurrentHealth],
+            (uint)player.Attributes[Stats.CurrentShield],
+            (uint)player.Attributes[Stats.CurrentMana],
+            (uint)player.Attributes[Stats.CurrentAbility],
+            (ushort)player.Attributes[Stats.AttackSpeed],
+            (ushort)player.Attributes[Stats.MagicSpeed],
+            (ushort)Math.Min(ushort.MaxValue, player.Attributes[Stats.SkillMultiplier] * 100)).ConfigureAwait(false);
     }
 }
