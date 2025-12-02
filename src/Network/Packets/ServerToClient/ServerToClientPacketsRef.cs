@@ -8968,7 +8968,7 @@ public readonly ref struct CurrentStatsExtendedRef
     /// <summary>
     /// Gets the initial length of this data packet. When the size is dynamic, this value may be bigger than actually needed.
     /// </summary>
-    public static int Length => 24;
+    public static int Length => 26;
 
     /// <summary>
     /// Gets the header of this packet.
@@ -9027,6 +9027,15 @@ public readonly ref struct CurrentStatsExtendedRef
     {
         get => ReadUInt16LittleEndian(this._data[22..]);
         set => WriteUInt16LittleEndian(this._data[22..], value);
+    }
+
+    /// <summary>
+    /// Gets or sets skill damage multiplier as percentage (e.g., 5.0 = 500, 4.15 = 415). Value is multiplied by 100 (e.g., 5.0 = 500).
+    /// </summary>
+    public ushort SkillMultiplier
+    {
+        get => ReadUInt16LittleEndian(this._data[24..]);
+        set => WriteUInt16LittleEndian(this._data[24..], value);
     }
 
     /// <summary>

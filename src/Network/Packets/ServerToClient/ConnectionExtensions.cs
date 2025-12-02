@@ -1809,11 +1809,12 @@ public static class ConnectionExtensions
     /// <param name="ability">The ability.</param>
     /// <param name="attackSpeed">The attack speed.</param>
     /// <param name="magicSpeed">The magic speed.</param>
+    /// <param name="skillMultiplier">Skill damage multiplier as percentage (e.g., 5.0 = 500, 4.15 = 415). Value is multiplied by 100 (e.g., 5.0 = 500).</param>
     /// <remarks>
     /// Is sent by the server when: Periodically, or if the current stats, like health, shield, mana or attack speed changed on the server side, e.g. by hits.
     /// Causes reaction on client side: The values are updated on the game client user interface.
     /// </remarks>
-    public static async ValueTask SendCurrentStatsExtendedAsync(this IConnection? connection, uint @health, uint @shield, uint @mana, uint @ability, ushort @attackSpeed, ushort @magicSpeed)
+    public static async ValueTask SendCurrentStatsExtendedAsync(this IConnection? connection, uint @health, uint @shield, uint @mana, uint @ability, ushort @attackSpeed, ushort @magicSpeed, ushort @skillMultiplier)
     {
         if (connection is null)
         {
@@ -1830,6 +1831,7 @@ public static class ConnectionExtensions
             packet.Ability = @ability;
             packet.AttackSpeed = @attackSpeed;
             packet.MagicSpeed = @magicSpeed;
+            packet.SkillMultiplier = @skillMultiplier;
 
             return packet.Header.Length;
         }

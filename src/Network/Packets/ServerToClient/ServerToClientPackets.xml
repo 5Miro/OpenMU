@@ -3251,7 +3251,7 @@
       <Code>26</Code>
       <SubCode>FF</SubCode>
       <Name>CurrentStatsExtended</Name>
-      <Length>24</Length>
+      <Length>26</Length>
       <Direction>ServerToClient</Direction>
       <SentWhen>Periodically, or if the current stats, like health, shield, mana or attack speed changed on the server side, e.g. by hits.</SentWhen>
       <CausedReaction>The values are updated on the game client user interface.</CausedReaction>
@@ -3285,6 +3285,12 @@
           <Index>22</Index>
           <Type>ShortLittleEndian</Type>
           <Name>MagicSpeed</Name>
+        </Field>
+        <Field>
+          <Index>24</Index>
+          <Type>ShortLittleEndian</Type>
+          <Name>SkillMultiplier</Name>
+          <Description>Skill damage multiplier as percentage (e.g., 5.0 = 500, 4.15 = 415). Value is multiplied by 100 (e.g., 5.0 = 500).</Description>
         </Field>
       </Fields>
     </Packet>
