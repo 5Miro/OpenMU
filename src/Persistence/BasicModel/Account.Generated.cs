@@ -89,6 +89,27 @@ public partial class Account : MUnique.OpenMU.DataModel.Entities.Account, IIdent
     }
 
     /// <summary>
+    /// Gets the raw collection of <see cref="MerchantPurchases" />.
+    /// </summary>
+    [System.Text.Json.Serialization.JsonPropertyName("merchantPurchases")]
+    public ICollection<AccountMerchantPurchase> RawMerchantPurchases { get; } = new List<AccountMerchantPurchase>();
+    
+    /// <inheritdoc/>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public override ICollection<MUnique.OpenMU.DataModel.Entities.AccountMerchantPurchase> MerchantPurchases
+    {
+        get => base.MerchantPurchases ??= new CollectionAdapter<MUnique.OpenMU.DataModel.Entities.AccountMerchantPurchase, AccountMerchantPurchase>(this.RawMerchantPurchases);
+        protected set
+        {
+            this.MerchantPurchases.Clear();
+            foreach (var item in value)
+            {
+                this.MerchantPurchases.Add(item);
+            }
+        }
+    }
+
+    /// <summary>
     /// Gets the raw object of <see cref="Vault" />.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("vault")]

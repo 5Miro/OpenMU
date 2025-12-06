@@ -52,6 +52,15 @@ internal partial class Account : MUnique.OpenMU.DataModel.Entities.Account, IIde
     public override ICollection<MUnique.OpenMU.AttributeSystem.StatAttribute> Attributes => base.Attributes ??= new CollectionAdapter<MUnique.OpenMU.AttributeSystem.StatAttribute, StatAttribute>(this.RawAttributes);
 
     /// <summary>
+    /// Gets the raw collection of <see cref="MerchantPurchases" />.
+    /// </summary>
+    public ICollection<AccountMerchantPurchase> RawMerchantPurchases { get; } = new EntityFramework.List<AccountMerchantPurchase>();
+    
+    /// <inheritdoc/>
+    [NotMapped]
+    public override ICollection<MUnique.OpenMU.DataModel.Entities.AccountMerchantPurchase> MerchantPurchases => base.MerchantPurchases ??= new CollectionAdapter<MUnique.OpenMU.DataModel.Entities.AccountMerchantPurchase, AccountMerchantPurchase>(this.RawMerchantPurchases);
+
+    /// <summary>
     /// Gets or sets the identifier of <see cref="Vault"/>.
     /// </summary>
     public Guid? VaultId { get; set; }

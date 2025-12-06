@@ -52,6 +52,24 @@ public class BuyNpcItemAction
             return;
         }
 
+        // Validate purchase against purchase-limit plugins
+        var purchaseValidator = player.GameContext.PlugInManager.GetPlugInPoint<IMerchantPurchaseValidatorPlugIn>();
+        if (purchaseValidator is not null)
+        {
+            var eventArgs = new MerchantPurchaseCancelEventArgs();
+            purchaseValidator.CanBuyItem(player, player.OpenedNpc, storeItem, eventArgs);
+            if (eventArgs.Cancel)
+            {
+                if (!string.IsNullOrEmpty(eventArgs.ErrorMessage))
+                {
+                    await player.InvokeViewPlugInAsync<IShowMessagePlugIn>(p => p.ShowMessageAsync(eventArgs.ErrorMessage, MessageType.BlueNormal)).ConfigureAwait(false);
+                }
+
+                await player.InvokeViewPlugInAsync<IBuyNpcItemFailedPlugIn>(p => p.BuyNpcItemFailedAsync()).ConfigureAwait(false);
+                return;
+            }
+        }
+
         // Inventory Update:
         if (storeItem.IsStackable() && player.Inventory!.Items.FirstOrDefault(item => storeItem.CanCompletelyStackOn(item)) is { } targetItem)
         {

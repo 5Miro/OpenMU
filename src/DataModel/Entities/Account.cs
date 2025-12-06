@@ -141,6 +141,13 @@ public class Account
     [MemberOfAggregate]
     public virtual ICollection<StatAttribute> Attributes { get; protected set; } = null!;
 
+    /// <summary>
+    /// Gets or sets the merchant purchases of this account.
+    /// </summary>
+    [MemberOfAggregate]
+    [HiddenAtCreation]
+    public virtual ICollection<AccountMerchantPurchase> MerchantPurchases { get; protected set; } = null!;
+
     /// <inheritdoc />
     public override string ToString()
     {
