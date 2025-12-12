@@ -7,6 +7,7 @@ namespace MUnique.OpenMU.GameLogic.PlayerActions.Craftings;
 using MUnique.OpenMU.DataModel.Configuration.ItemCrafting;
 using MUnique.OpenMU.DataModel.Configuration.Items;
 using MUnique.OpenMU.GameLogic.PlayerActions.Items;
+using MUnique.OpenMU.Persistence;
 
 /// <summary>
 /// Crafting for Chaos Weapon and First Wings.
@@ -33,8 +34,19 @@ public class ChaosWeaponAndFirstWingsCrafting : SimpleItemCraftingHandler
             if (Rand.NextRandomBool((successRate / 5) + (4 * (i + 1))))
             {
                 var link = player.PersistenceContext.CreateNew<ItemOptionLink>();
-                link.ItemOption = option.PossibleOptions.First();
+                var selectedOption = option.PossibleOptions.First();
                 link.Level = 3 - i;
+                // Set ItemOptionId first to establish the foreign key relationship
+                var optionId = selectedOption.GetId();
+                var linkType = link.GetType();
+                var itemOptionIdProperty = linkType.GetProperty("ItemOptionId");
+                if (itemOptionIdProperty != null)
+                {
+                    itemOptionIdProperty.SetValue(link, optionId);
+                }
+                
+                // Set ItemOption navigation property for serialization (AccountContext ignores config types, so this won't be tracked)
+                link.ItemOption = selectedOption;
                 resultItem.ItemOptions.Add(link);
             }
         }
@@ -49,7 +61,18 @@ public class ChaosWeaponAndFirstWingsCrafting : SimpleItemCraftingHandler
                 is { } luck)
         {
             var luckOption = player.PersistenceContext.CreateNew<ItemOptionLink>();
-            luckOption.ItemOption = luck.PossibleOptions.First();
+            var selectedLuckOption = luck.PossibleOptions.First();
+            // Set ItemOptionId first to establish the foreign key relationship
+            var optionId = selectedLuckOption.GetId();
+            var linkType = luckOption.GetType();
+            var itemOptionIdProperty = linkType.GetProperty("ItemOptionId");
+            if (itemOptionIdProperty != null)
+            {
+                itemOptionIdProperty.SetValue(luckOption, optionId);
+            }
+            
+            // Set ItemOption navigation property for serialization (AccountContext ignores config types, so this won't be tracked)
+            luckOption.ItemOption = selectedLuckOption;
             resultItem.ItemOptions.Add(luckOption);
         }
     }

@@ -7,6 +7,7 @@ namespace MUnique.OpenMU.GameLogic.PlayerActions.Craftings;
 using MUnique.OpenMU.DataModel.Configuration.ItemCrafting;
 using MUnique.OpenMU.DataModel.Configuration.Items;
 using MUnique.OpenMU.GameLogic.PlayerActions.Items;
+using MUnique.OpenMU.Persistence;
 
 /// <summary>
 /// Crafting for Third Wings.
@@ -44,15 +45,27 @@ public class ThirdWingsCrafting : SimpleItemCraftingHandler
                     ? (40, 1)
                     : (30, 2);
 
+                IncreasableItemOption selectedOption;
                 if (Rand.NextRandomBool(chance2))
                 {
-                    link.ItemOption = options.ElementAt(type).PossibleOptions.First();  // Additional dmg (phys, wiz, curse) or defense
+                    selectedOption = options.ElementAt(type).PossibleOptions.First();  // Additional dmg (phys, wiz, curse) or defense
                 }
                 else
                 {
-                    link.ItemOption = options.ElementAt(0).PossibleOptions.First(); // HP recovery %
+                    selectedOption = options.ElementAt(0).PossibleOptions.First(); // HP recovery %
                 }
 
+                // Set ItemOptionId first to establish the foreign key relationship
+                var optionId = selectedOption.GetId();
+                var linkType = link.GetType();
+                var itemOptionIdProperty = linkType.GetProperty("ItemOptionId");
+                if (itemOptionIdProperty != null)
+                {
+                    itemOptionIdProperty.SetValue(link, optionId);
+                }
+                
+                // Set ItemOption navigation property for serialization (AccountContext ignores config types, so this won't be tracked)
+                link.ItemOption = selectedOption;
                 resultItem.ItemOptions.Add(link);
             }
         }
@@ -75,7 +88,18 @@ public class ThirdWingsCrafting : SimpleItemCraftingHandler
             if (Rand.NextRandomBool(chance))
             {
                 var link = player.PersistenceContext.CreateNew<ItemOptionLink>();
-                link.ItemOption = wingOption.PossibleOptions.ElementAt(type);
+                var selectedWingOption = wingOption.PossibleOptions.ElementAt(type);
+                // Set ItemOptionId first to establish the foreign key relationship
+                var optionId = selectedWingOption.GetId();
+                var linkType = link.GetType();
+                var itemOptionIdProperty = linkType.GetProperty("ItemOptionId");
+                if (itemOptionIdProperty != null)
+                {
+                    itemOptionIdProperty.SetValue(link, optionId);
+                }
+                
+                // Set ItemOption navigation property for serialization (AccountContext ignores config types, so this won't be tracked)
+                link.ItemOption = selectedWingOption;
                 resultItem.ItemOptions.Add(link);
             }
         }
